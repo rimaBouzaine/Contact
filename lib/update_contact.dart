@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gestion_de_contact/sql_helper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+
 class UpdateContactPage extends StatefulWidget {
   final int contactId;
 
@@ -23,17 +24,17 @@ class _UpdateContactPageState extends State<UpdateContactPage> {
     super.initState();
     _getContactDetails();
   }
+
   File? _selectedImage;
   void _getContactDetails() async {
     Map<String, dynamic> contact =
-    await dbHelper.getContactById(widget.contactId);
+        await dbHelper.getContactById(widget.contactId);
 
     setState(() {
       _nomController.text = contact['nom'];
       _prenomController.text = contact['prenom'];
       _telController.text = contact['tel'];
       _selectedImage = contact['photo'] != '' ? File(contact['photo']) : null;
-
     });
   }
 
@@ -48,7 +49,8 @@ class _UpdateContactPageState extends State<UpdateContactPage> {
         builder: (BuildContext context) {
           return AlertDialog(
             title: Text('Champ obligatoire'),
-            content: Text('Le champ "Nom" est obligatoire et doit contenir des lettres.'),
+            content: Text(
+                'Le champ "Nom" est obligatoire et doit contenir des lettres.'),
             actions: <Widget>[
               ElevatedButton(
                 onPressed: () {
@@ -70,7 +72,8 @@ class _UpdateContactPageState extends State<UpdateContactPage> {
         builder: (BuildContext context) {
           return AlertDialog(
             title: Text('Champ obligatoire'),
-            content: Text('Le champ "Prénom" est obligatoire et doit contenir des lettres'),
+            content: Text(
+                'Le champ "Prénom" est obligatoire et doit contenir des lettres'),
             actions: <Widget>[
               ElevatedButton(
                 onPressed: () {
@@ -92,7 +95,8 @@ class _UpdateContactPageState extends State<UpdateContactPage> {
         builder: (BuildContext context) {
           return AlertDialog(
             title: Text('Champ obligatoire'),
-            content: Text('Le champ "Téléphone" est obligatoire et doit contenir des chiffres.'),
+            content: Text(
+                'Le champ "Téléphone" est obligatoire et doit contenir des chiffres.'),
             actions: <Widget>[
               ElevatedButton(
                 onPressed: () {
@@ -119,10 +123,7 @@ class _UpdateContactPageState extends State<UpdateContactPage> {
     Navigator.pop(context);
   }
 
-
-
-
-    void _selectImage() async {
+  void _selectImage() async {
     final ImagePicker _picker = ImagePicker();
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
 
@@ -132,44 +133,67 @@ class _UpdateContactPageState extends State<UpdateContactPage> {
       });
     }
   }
-  Widget _buildImage() {
-    if (_selectedImage != null) {
-      return Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Center(
-          child: Stack(children:[CircleAvatar(backgroundImage: FileImage(_selectedImage!),radius: 55,),
-            Positioned(
-              bottom: -15,
-              right: -15,
 
+  void deleteImage() {
+    setState(() {
+      _selectedImage = null;
+    });
+  }
+
+  Widget _buildImage() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Center(
+        child: Stack(children: [
+          _selectedImage != null
+              ? CircleAvatar(
+            backgroundImage: FileImage(_selectedImage!),
+            radius: 55,
+          )
+              : CircleAvatar(
+            backgroundImage: AssetImage('assets/inconnu.png'),
+            radius: 55,
+          ),
+          Positioned(
+            bottom: 0,
+            right: 0,
+            child: Container(
+              height: 40,
+              width: 40,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.lightGreen, // Set the background color here
+              ),
               child: IconButton(
                 onPressed: _selectImage,
                 icon: Icon(Icons.add),
-                iconSize: 40,
+                iconSize: 20,
+                color: Colors.white, // Set the icon color here
               ),
             ),
-          ] ),
-        ),
-      );
-    } else {
-      return Center(
-          child: Stack(children: [
-            CircleAvatar(
-              backgroundImage: AssetImage('assets/inconnu.png'),
-              radius: 55,
-            ),
-            Positioned(
-              bottom: 5,
-              right: 5,
+          ),
+          Positioned(
+            bottom: 0,
+            left: 0,
+            child: Container(
+              height: 40,
+              width: 40,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.red, // Set the background color here
+              ),
               child: IconButton(
-                onPressed: _selectImage,
-                icon: Icon(Icons.add,size: 30,),
+                onPressed: deleteImage,
+                icon: Icon(Icons.delete),
+                iconSize: 20,
+                color: Colors.white, // Set the icon color here
               ),
             ),
-          ]));
-    }
+          ),
+        ]),
+      ),
+    );
   }
-
 
   Widget _buildSelectImageButton() {
     return ElevatedButton(
@@ -181,9 +205,8 @@ class _UpdateContactPageState extends State<UpdateContactPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        resizeToAvoidBottomInset: false,
-
-        appBar: AppBar(
+      resizeToAvoidBottomInset: false,
+      appBar: AppBar(
         title: Text('Modifier Contact'),
       ),
       body: Padding(
@@ -192,66 +215,78 @@ class _UpdateContactPageState extends State<UpdateContactPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildImage(),
-            SizedBox(height: 15,),
-            Row(children: [
-              Icon(Icons.person_outlined,color: Colors.grey, ),
-              SizedBox(width: 10),
-              Expanded(
-                child: TextFormField(
-                  controller: _nomController,
-                  decoration: InputDecoration(
-                    labelText: 'Nom',
-                    labelStyle: TextStyle(
-                      color: Colors.grey,
+            SizedBox(
+              height: 15,
+            ),
+            Row(
+              children: [
+                Icon(
+                  Icons.person_outlined,
+                  color: Colors.grey,
+                ),
+                SizedBox(width: 10),
+                Expanded(
+                  child: TextFormField(
+                    controller: _nomController,
+                    decoration: InputDecoration(
+                      labelText: 'Nom',
+                      labelStyle: TextStyle(
+                        color: Colors.grey,
+                      ),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(8.0))),
                     ),
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(8.0))
-                    ),
-
                   ),
                 ),
-              ),
-            ],),
-            SizedBox(height: 15,),
-            Row(children: [
-              SizedBox(width: 32),
-              Expanded(
-                child: TextFormField(
-                  controller: _prenomController,
-                  decoration: InputDecoration(
-                    labelText: 'Prénom',
-                    labelStyle: TextStyle(
-                      color: Colors.grey,
+              ],
+            ),
+            SizedBox(
+              height: 15,
+            ),
+            Row(
+              children: [
+                SizedBox(width: 32),
+                Expanded(
+                  child: TextFormField(
+                    controller: _prenomController,
+                    decoration: InputDecoration(
+                      labelText: 'Prénom',
+                      labelStyle: TextStyle(
+                        color: Colors.grey,
+                      ),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(8.0))),
                     ),
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(8.0))
-                    ),
-
                   ),
                 ),
-              ),
-            ],),
-            SizedBox(height: 15,),
-            Row(children: [
-              Icon(Icons.call,color: Colors.grey, ),
-              SizedBox(width: 10),
-              Expanded(
-                child: TextFormField(
-                  keyboardType: TextInputType.phone,
-                  controller: _telController,
-                  decoration: InputDecoration(
-                    labelText: 'Téléphone',
-                    labelStyle: TextStyle(
-                      color: Colors.grey,
+              ],
+            ),
+            SizedBox(
+              height: 15,
+            ),
+            Row(
+              children: [
+                Icon(
+                  Icons.call,
+                  color: Colors.grey,
+                ),
+                SizedBox(width: 10),
+                Expanded(
+                  child: TextFormField(
+                    keyboardType: TextInputType.phone,
+                    controller: _telController,
+                    decoration: InputDecoration(
+                      labelText: 'Téléphone',
+                      labelStyle: TextStyle(
+                        color: Colors.grey,
+                      ),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(8.0))),
                     ),
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(8.0))
-                    ),
-
                   ),
                 ),
-              ),
-            ],),
+              ],
+            ),
             SizedBox(height: 15),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -261,14 +296,13 @@ class _UpdateContactPageState extends State<UpdateContactPage> {
                   child: Text('Enregistrer'),
                 ),
                 ElevatedButton(
-                  onPressed: (){
+                  onPressed: () {
                     Navigator.pop(context);
                   },
                   child: Text('Annuler'),
                 ),
               ],
             ),
-
           ],
         ),
       ),

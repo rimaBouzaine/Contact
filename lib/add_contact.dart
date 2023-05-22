@@ -28,7 +28,8 @@ class _AddContactPageState extends State<AddContactPage> {
         builder: (BuildContext context) {
           return AlertDialog(
             title: Text('Champ obligatoire'),
-            content: Text('Le champ "Nom" est obligatoire et doit contenir des lettres.'),
+            content: Text(
+                'Le champ "Nom" est obligatoire et doit contenir des lettres.'),
             actions: <Widget>[
               ElevatedButton(
                 onPressed: () {
@@ -50,7 +51,8 @@ class _AddContactPageState extends State<AddContactPage> {
         builder: (BuildContext context) {
           return AlertDialog(
             title: Text('Champ obligatoire'),
-            content: Text('Le champ "Prénom" est obligatoire et doit contenir des lettres.'),
+            content: Text(
+                'Le champ "Prénom" est obligatoire et doit contenir des lettres.'),
             actions: <Widget>[
               ElevatedButton(
                 onPressed: () {
@@ -66,13 +68,14 @@ class _AddContactPageState extends State<AddContactPage> {
     }
 
     // Validation du champ "Téléphone"
-    if (tel.isEmpty  || !RegExp(r'^\d+$').hasMatch(tel)) {
+    if (tel.isEmpty || !RegExp(r'^\d+$').hasMatch(tel)) {
       showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
             title: Text('Champ obligatoire'),
-            content: Text('Le champ "Téléphone" est obligatoire et doit contenir chiffres.'),
+            content: Text(
+                'Le champ "Téléphone" est obligatoire et doit contenir chiffres.'),
             actions: <Widget>[
               ElevatedButton(
                 onPressed: () {
@@ -98,8 +101,6 @@ class _AddContactPageState extends State<AddContactPage> {
     Navigator.pop(context);
   }
 
-
-
   void _selectImage() async {
     final ImagePicker _picker = ImagePicker();
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
@@ -111,40 +112,65 @@ class _AddContactPageState extends State<AddContactPage> {
     }
   }
 
+  void deleteImage() {
+    setState(() {
+      _selectedImage = null;
+    });
+  }
+
   Widget _buildImage() {
-    if (_selectedImage != null) {
-      return Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Center(
-          child: Stack(children:[CircleAvatar(backgroundImage: FileImage(_selectedImage!),radius: 55,),
-            Positioned(
-              bottom: 5,
-              right: 5,
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Center(
+        child: Stack(children: [
+          _selectedImage != null
+              ? CircleAvatar(
+                  backgroundImage: FileImage(_selectedImage!),
+                  radius: 55,
+                )
+              : CircleAvatar(
+                  backgroundImage: AssetImage('assets/inconnu.png'),
+                  radius: 55,
+                ),
+          Positioned(
+            bottom: 0,
+            right: 0,
+            child: Container(
+              height: 40,
+              width: 40,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.lightGreen, // Set the background color here
+              ),
               child: IconButton(
                 onPressed: _selectImage,
                 icon: Icon(Icons.add),
+                iconSize: 20,
+                color: Colors.white, // Set the icon color here
               ),
             ),
-          ] ),
-        ),
-      );
-    } else {
-      return Center(
-          child: Stack(children: [
-        CircleAvatar(
-          backgroundImage: AssetImage('assets/inconnu.png'),
-          radius: 55,
-        ),
-        Positioned(
-          bottom: -8,
-          right: -8,
-          child: IconButton(
-            onPressed: _selectImage,
-            icon: Icon(Icons.add,size: 40,),
           ),
-        ),
-      ]));
-    }
+          Positioned(
+            bottom: 0,
+            left: 0,
+            child: Container(
+              height: 40,
+              width: 40,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.red, // Set the background color here
+              ),
+              child: IconButton(
+                onPressed: deleteImage,
+                icon: Icon(Icons.delete),
+                iconSize: 20,
+                color: Colors.white, // Set the icon color here
+              ),
+            ),
+          ),
+        ]),
+      ),
+    );
   }
 
   File? _selectedImage;
@@ -163,68 +189,78 @@ class _AddContactPageState extends State<AddContactPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildImage(),
-            SizedBox(height: 15,),
-            Row(children: [
-              Icon(Icons.person_outlined,color: Colors.grey, ),
-              SizedBox(width: 10),
-              Expanded(
-                child: TextFormField(
-                  controller: _nomController,
-                  decoration: InputDecoration(
-                    labelText: 'Nom',
-                    labelStyle: TextStyle(
-                      color: Colors.grey,
+            SizedBox(
+              height: 15,
+            ),
+            Row(
+              children: [
+                Icon(
+                  Icons.person_outlined,
+                  color: Colors.grey,
+                ),
+                SizedBox(width: 10),
+                Expanded(
+                  child: TextFormField(
+                    controller: _nomController,
+                    decoration: InputDecoration(
+                      labelText: 'Nom',
+                      labelStyle: TextStyle(
+                        color: Colors.grey,
+                      ),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(8.0))),
                     ),
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(8.0))
-                    ),
-
                   ),
                 ),
-              ),
-            ],),
-            SizedBox(height: 15,),
-            Row(children: [
-              SizedBox(width: 32),
-              Expanded(
-                child: TextFormField(
-                  controller: _prenomController,
-                  decoration: InputDecoration(
-                    labelText: 'Prénom',
-                    labelStyle: TextStyle(
-                      color: Colors.grey,
+              ],
+            ),
+            SizedBox(
+              height: 15,
+            ),
+            Row(
+              children: [
+                SizedBox(width: 32),
+                Expanded(
+                  child: TextFormField(
+                    controller: _prenomController,
+                    decoration: InputDecoration(
+                      labelText: 'Prénom',
+                      labelStyle: TextStyle(
+                        color: Colors.grey,
+                      ),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(8.0))),
                     ),
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(8.0))
-                    ),
-
                   ),
                 ),
-              ),
-            ],),
-            SizedBox(height: 15,),
-            Row(children: [
-              Icon(Icons.call,color: Colors.grey, ),
-              SizedBox(width: 10),
-              Expanded(
-                child: TextFormField(
-                  keyboardType: TextInputType.phone,
-                  controller: _telController,
-                  decoration: InputDecoration(
-                    labelText: 'Téléphone',
-                    labelStyle: TextStyle(
-                      color: Colors.grey,
+              ],
+            ),
+            SizedBox(
+              height: 15,
+            ),
+            Row(
+              children: [
+                Icon(
+                  Icons.call,
+                  color: Colors.grey,
+                ),
+                SizedBox(width: 10),
+                Expanded(
+                  child: TextFormField(
+                    keyboardType: TextInputType.phone,
+                    controller: _telController,
+                    decoration: InputDecoration(
+                      labelText: 'Téléphone',
+                      labelStyle: TextStyle(
+                        color: Colors.grey,
+                      ),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(8.0))),
                     ),
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(8.0))
-                    ),
-
                   ),
                 ),
-              ),
-            ],),
-
-
+              ],
+            ),
             SizedBox(height: 15),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -234,14 +270,13 @@ class _AddContactPageState extends State<AddContactPage> {
                   child: Text('Enregistrer'),
                 ),
                 ElevatedButton(
-                  onPressed: (){
+                  onPressed: () {
                     Navigator.pop(context);
                   },
                   child: Text('Annuler'),
                 ),
               ],
             ),
-
           ],
         ),
       ),

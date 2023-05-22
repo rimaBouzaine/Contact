@@ -18,7 +18,6 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.lightGreen,
       ),
-
       home: ContactsPage(),
     );
   }
@@ -32,6 +31,8 @@ class ContactsPage extends StatefulWidget {
 class _ContactsPageState extends State<ContactsPage> {
   DatabaseHelper dbHelper = DatabaseHelper.instance;
   List<Map<String, dynamic>> contacts = [];
+  List<Map<String, dynamic>> filteredContacts = [];
+  TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
@@ -41,8 +42,17 @@ class _ContactsPageState extends State<ContactsPage> {
 
   void _getContacts() async {
     List<Map<String, dynamic>> fetchedContacts = await dbHelper.getContacts();
+    currentLetter = ''; // Reset the currentLetter variable
+
+    // Convert the QueryResultSet to a modifiable list
+    List<Map<String, dynamic>> contactsList = fetchedContacts.toList();
+
+    // Sort the list of contacts
+    contactsList.sort((a, b) => a['nom'].toLowerCase().compareTo(b['nom'].toLowerCase()));
+
     setState(() {
-      contacts = fetchedContacts;
+      contacts = contactsList;
+      filteredContacts = contactsList;
     });
   }
 
@@ -99,6 +109,7 @@ class _ContactsPageState extends State<ContactsPage> {
     );
   }
 
+  String currentLetter = '';
   void _makePhoneCall(String phoneNumber) async {
     final url = 'tel:$phoneNumber';
     if (await canLaunch(url)) {
@@ -108,44 +119,104 @@ class _ContactsPageState extends State<ContactsPage> {
     }
   }
 
+  void _filterContacts(String query) {
+    List<Map<String, dynamic>> filteredList = contacts.where((contact) {
+      final String fullName =
+      '${contact['nom']} ${contact['prenom']} ${contact['tel']}'.toLowerCase();
+      return fullName.contains(query.toLowerCase());
+    }).toList();
+
+    setState(() {
+      filteredContacts = filteredList;
+    });
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Contacts'),
       ),
-      body: ListView.builder(
-        itemCount: contacts.length,
+      body:Column(
+          children: [
+      Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: TextField(
+        controller: _searchController,
+        onChanged: _filterContacts,
+        decoration: InputDecoration(
+          labelText: 'Rechercher un contact',
+          prefixIcon: Icon(Icons.search),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(8.0)),
+          ),
+        ),
+      ),
+    ),
+    Expanded(child: ListView.builder(
+        itemCount: filteredContacts.length,
         itemBuilder: (BuildContext context, int index) {
-          String photoPath = contacts[index]['photo'];
+          String photoPath = filteredContacts[index]['photo'];
           File imageFile = File(photoPath);
-          return ListTile(
-            title:
-                Text('${contacts[index]['nom']} ${contacts[index]['prenom']}'),
-            subtitle: Text(contacts[index]['tel']),
-            //faire un test bch ya5u image inconnue par defaut
 
-            leading:photoPath != "" ? CircleAvatar(
-              backgroundImage: FileImage(imageFile),
-            ):CircleAvatar(
-                backgroundImage: AssetImage('assets/inconnu.png')
-            ),
+          // Get the first letter of the contact's name
+          String firstLetter = filteredContacts[index]['nom'][0].toUpperCase();
 
-            trailing: Row(mainAxisSize: MainAxisSize.min, children: [
-              IconButton(
-                icon: Icon(Icons.call),
-                color: Colors.green,
-                onPressed: () => _makePhoneCall(contacts[index]['tel']),
+          // Check if the first letter is different from the current letter
+          bool isNewLetter = firstLetter != currentLetter;
+
+          // Update the current letter if it's a new letter
+          if (isNewLetter) {
+            currentLetter = firstLetter;
+          }
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Display the header if it's a new letter
+              if (isNewLetter)
+                Padding(
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  child: Text(
+                    currentLetter,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16.0,
+                    ),
+                  ),
+                ),
+              ListTile(
+                title: Text(
+                    '${filteredContacts[index]['nom']} ${filteredContacts[index]['prenom']}'),
+                subtitle: Text(filteredContacts[index]['tel']),
+                //faire un test bch ya5u image inconnue par defaut
+
+                leading: photoPath != ""
+                    ? CircleAvatar(
+                        backgroundImage: FileImage(imageFile),
+                      )
+                    : CircleAvatar(
+                        backgroundImage: AssetImage('assets/inconnu.png')),
+
+                trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+                  IconButton(
+                    icon: Icon(Icons.call),
+                    color: Colors.green,
+                    onPressed: () => _makePhoneCall(contacts[index]['tel']),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.delete),
+                    onPressed: () => _deleteContact(contacts[index]['id']),
+                  ),
+                ]),
+                onTap: () => _updateContact(contacts[index]['id']),
               ),
-              IconButton(
-                icon: Icon(Icons.delete),
-                onPressed: () => _deleteContact(contacts[index]['id']),
-              ),
-            ]),
-            onTap: () => _updateContact(contacts[index]['id']),
+            ],
           );
         },
-      ),
+      ))]),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
         onPressed: _addContact,
@@ -153,4 +224,3 @@ class _ContactsPageState extends State<ContactsPage> {
     );
   }
 }
-
